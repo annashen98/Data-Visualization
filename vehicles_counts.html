@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Traffic Analysis Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+  <style>
+     * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #app-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    #map-container {
+      flex: 60%;
+      height: 100%;
+      position: relative;
+      background: #f0f0f0;
+    }
+
+    #controls {
+      flex: 40%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 4px;
+      background-color: #f9f9f9;
+      border-leftpx solid #ddd;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .control-group {
+      margin-bottom: 5px;
+    }
+    label {
+      display: block;
+      margin: 7px 0 7px;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    select, button {
+      width: 100%;
+      padding: 4px 4px;
+      font-size: 11px;
+      margin-bottom: 7px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #abb2b9;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #6c757d;
+    }
+    button.active {
+      background-color: #6c757d;
+    }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: 4px;
+      z-index: 1;
+      max-width: 200px;
+    }
+    .legend h3 {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .legend-color {
+      width: 20px;
+      height: 12px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+    }
+    .hidden {
+      display: none;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 7px;
+    }
+    .button-group button {
+      flex: 1;
+      padding: 4px;
+      font-size: 11px;
+    }
+    
+    .weather-display {
+      margin: 7px 0;
+      padding: 4px;
+      background: #f0f8ff;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    
+    .slider-container {
+      margin: 7px 0;
+    }
+    .slider-container label {
+      display: flex;
+      justify-content: space-between;
+    }
+    #countSlider, #speedSlider, #overallCountSlider {
+      width: 100%;
+      height: 6px;
+      margin-top: 7px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    #countSlider::-webkit-slider-thumb,
+    #speedSlider::-webkit-slider-thumb,
+    #overallCountSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6c757d;
+      cursor: pointer;
+      margin-top: -5px;
+    }
+
+    #countSlider::-moz-range-thumb,
+    #speedSlider::-moz-range-thumb,
+    #overallCountSlider::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6c757d;
+      cursor: pointer;
+      border: none;
+    }
+
+    #countValue, #speedValue, #overallCountValue {
+      font-weight: normal;
+    }
+    
+    .control-panel-section {
+      padding: 4px;
+      margin-bottom: 6px;
+    }
+    
+    #interactive-controls {
+      flex: 0 0 40%;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+    
+    #chart-section {
+      flex: 1;
+      min-height: 300px;
+      padding-top: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #overallChartContainer, #timeChartContainer, #speedChartContainer {
+      position: relative;
+      flex: 1;
+      min-height: 300px;
+      width: 100%;
+    }
+    .chart-container {
+      display: none;
+      height: 100%;
+    }
+    .chart-container.active {
+      display: block;
+    }
+    
+    .mapboxgl-line {
+      transition: opacity 0.3s ease;
+    }
+    
+    .top-marker {
+      background-color: #DF744E;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      transform: translateY(-30px);
+      border: 2px solid white;
+    }
+    
+    .legend-separator {
+      height: 1px;
+      background-color: #ddd;
+      margin: 8px 0;
+    }
+    
+    .top-marker-legend {
+      background-color: #DF744E;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      border: 2px solid white;
+    }
+    
+    #top10Legend {
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <div id="map-container">
+      <div id="map"></div>
+      <div class="legend">
+        <h3 id="legendTitle">Vehicle Counts</h3>
+        
+        <!-- main container -->
+        <div id="mainLegend">
+          <div id="countLegend">
+            <div class="legend-item"><div class="legend-color" style="background:#00939C"></div>0–400 vehicles</div>
+            <div class="legend-item"><div class="legend-color" style="background:#AAD7D9"></div>401–800 vehicles</div>
+            <div class="legend-item"><div class="legend-color" style="background:#F4B198"></div>801–1200 vehicles</div>
+            <div class="legend-item"><div class="legend-color" style="background:#DF744E"></div>1201–1600 vehicles</div>
+            <div class="legend-item"><div class="legend-color" style="background:#C22E00"></div>1601+ vehicles</div>
+          </div>
+          
+          <!-- speed legend -->
+          <div id="speedLegend" class="hidden">
+            <div class="legend-item"><div class="legend-color" style="background:#DF744E"></div>1–20 km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#F4B198"></div>21–40 km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#AAD7D9"></div>41–60 km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#00939C"></div>60+ km/h</div>
+          </div>
+        </div>
+        
+        <!-- Top10 legend -->
+        <div id="top10Legend" class="hidden">
+          <div class="legend-separator"></div>
+          <div class="legend-item">
+            <div class="top-marker-legend"></div>
+            <span>Top 10 Roads by Vehicle Count</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <div id="interactive-controls" class="control-panel-section">
+        <div class="control-group">
+          <label for="weekday-select">Weekday</label>
+          <select id="weekday-select">
+            <option value="Sunday">Sunday</option>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label for="weather-select">Weather</label>
+          <select id="weather-select">
+            <option value="">Select weekday first</option>
+          </select>
+        </div>
+        
+        <div class="button-group">
+          <button id="overallBtn" class="active">Overall</button>
+          <button id="timeBandBtn">Time Band</button>
+          <button id="speedBtn">Speed</button>
+        </div>
+        
+        <div class="control-group" id="timeBandControl">
+          <label for="timeband-select">Time Band</label>
+          <select id="timeband-select">
+            <option value="1. Morning Peak (07:00–09:00)">1. Morning Peak (07:00–09:00)</option>
+            <option value="2. Mid-Morning (09:00–12:00)">2. Mid-Morning (09:00–12:00)</option>
+            <option value="3. Midday (12:00–15:00)">3. Midday (12:00–15:00)</option>
+            <option value="4. Afternoon (15:00–17:00)">4. Afternoon (15:00–17:00)</option>
+            <option value="5. Evening Peak (17:00–19:00)">5. Evening Peak (17:00–19:00)</option>
+            <option value="Outside Time Band">Outside Time Band</option>
+          </select>
+        </div>
+        
+        <div class="slider-container" id="overallCountSliderContainer">
+          <label>
+            Overall Vehicle Count Filter: 
+            <span id="overallCountValue">0-7200</span>
+          </label>
+          <input type="range" id="overallCountSlider" min="0" max="7200" value="1500" step="10">
+        </div>
+        
+        <div class="slider-container hidden" id="countSliderContainer">
+          <label>
+            Time Band Vehicle Count Filter: 
+            <span id="countValue">0-7200</span>
+          </label>
+          <input type="range" id="countSlider" min="0" max="7200" value="600" step="10">
+        </div>
+        
+        <div class="slider-container hidden" id="speedSliderContainer">
+          <label>
+            Speed Filter (km/h): 
+            <span id="speedValue">0-60</span>
+          </label>
+          <input type="range" id="speedSlider" min="0" max="60" value="20" step="1">
+        </div>
+      </div>
+      
+      <div id="chart-section" class="control-panel-section">
+        <h3 id="chartTitle">Overall Traffic View</h3>
+        <div class="chart-container active" id="overallChartContainer">
+          <canvas id="overallChart"></canvas>
+        </div>
+        <div class="chart-container" id="timeChartContainer">
+          <canvas id="timeChart"></canvas>
+        </div>
+        <div class="chart-container" id="speedChartContainer">
+          <canvas id="speedChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initializing
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamlhYW5hbmFuIiwiYSI6ImNrbmljaWhuZzF5bzMydm9heGZlZjM1amUifQ.ROU2m2WA53dN1W52K-BQSQ';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [118.72, 30.92],
+      zoom: 12,
+      antialias: true,
+      interactive: true,
+      attributionControl: false
+    });
+
+    // add control
+    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.FullscreenControl());
+
+    function assignColorCount(value) {
+      value = parseInt(value);
+      if (value <= 400) return '#00939C';
+      if (value <= 800) return '#AAD7D9';
+      if (value <= 1200) return '#F4B198';
+      if (value <= 1600) return '#DF744E';
+      return '#C22E00';
+    }
+
+    function assignColorSpeed(value) {
+      value = parseFloat(value) || 0;
+      if (value <= 20) return '#DF744E';
+      if (value <= 40) return '#F4B198';
+      if (value <= 60) return '#AAD7D9';
+      return '#00939C';
+    }
+
+    let currentWeekday = document.getElementById('weekday-select').value;
+    let currentWeather = null;
+    let currentTimeBand = document.getElementById('timeband-select').value;
+    let currentCountFilter = 5400;
+    let currentSpeedFilter = 60;
+    let currentOverallCountFilter = 7200;
+    let currentMode = 'overall';
+    let isUpdatingDuringPlayback = false;
+    
+    // Popup
+    const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+    
+    // save Top 10 marker
+    let topMarkers = [];
+      
+    // data saving 
+    let mergedTimeSpeedData = null;
+    let groupedOverallData = null;
+    let overallChart = null;
+    let timeChart = null;
+    let speedChart = null;
+      
+    let isPlaying = false;
+    let playbackInterval;
+    let currentPlaybackMode = null;
+
+    // load data
+    Promise.all([
+        fetch('data/merged_time_speed.geojson').then(res => res.json()),
+        fetch('data/grouped_overall.geojson').then(res => res.json())
+    ])
+    .then(([timeSpeedData, overallData]) => {
+        mergedTimeSpeedData = timeSpeedData;
+        groupedOverallData = overallData;
+        updateWeatherOptions();
+        updateOverallView();
+        updateOverallChart();
+    })
+    .catch(err => {
+        console.error('Data loading error:', err);
+        alert('Error loading data. Please check console for details.');
+    });
+
+    // update Weather Options
+    function updateWeatherOptions() {
+      if (!mergedTimeSpeedData) return;
+      
+      const weatherSelect = document.getElementById('weather-select');
+      weatherSelect.innerHTML = '';
+      
+      const featuresForDay = mergedTimeSpeedData.features.filter(
+        f => f.properties.weekday === currentWeekday
+      );
+      
+      if (featuresForDay.length === 0) {
+        weatherSelect.innerHTML = '<option value="">No data for selected day</option>';
+        return;
+      }
+      
+      const weatherCodes = [...new Set(featuresForDay.map(f => f.properties.weather_code))];
+      
+      weatherCodes.forEach(code => {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = code;
+        weatherSelect.appendChild(option);
+      });
+      
+      if (weatherCodes.length > 0) {
+        currentWeather = weatherCodes[0];
+        weatherSelect.value = currentWeather;
+      }
+    }
+
+    function updateOverallView(skipChartUpdate) {
+    if (!groupedOverallData || !currentWeather) return;
+
+    // Get current date and weather features
+    const allFeatures = groupedOverallData.features.filter(f => 
+        f.properties.weekday === currentWeekday && 
+        f.properties.weather_code === currentWeather
+    );
+
+    // Filter by count
+    const filteredFeatures = allFeatures.filter(f => 
+        (f.properties.COUNT_overall || 0) <= currentOverallCountFilter
+    );
+
+    // Sort by count (low to high)
+    filteredFeatures.sort((a, b) => (a.properties.COUNT_overall || 0) - (b.properties.COUNT_overall || 0));
+
+    const filtered = {
+        type: "FeatureCollection",
+        features: filteredFeatures
+    };
+
+    // Assign colors based on COUNT_overall
+    filtered.features.forEach(f => {
+        f.properties.color = assignColorCount(f.properties.COUNT_overall || 0);
+    });
+
+    // Update or create data source and layer
+    if (map.getSource('trafficSource')) {
+        map.getSource('trafficSource').setData(filtered);
+    } else {
+        map.addSource('trafficSource', { type: 'geojson', data: filtered });
+        map.addLayer({
+            id: 'trafficLayer',
+            type: 'line',
+            source: 'trafficSource',
+            paint: {
+                'line-color': ['get', 'color'],
+                'line-width': [
+                    'interpolate', ['linear'], ['zoom'],
+                    10, 3,
+                    15, 6
+                ],
+                'line-opacity': 0.9
+            }
+        });
+
+        // Click event - show road ID and vehicle count
+        map.on('click', 'trafficLayer', (e) => {
+            if (e.features.length > 0) {
+                popup.remove();
+                popup.setLngLat(e.lngLat)
+                    .setHTML(`
+                        <p><strong>Road ID:</strong> ${e.features[0].properties.ROAD_ID}</p>
+                        <p><strong>Vehicle Counts:</strong> ${e.features[0].properties.COUNT_overall || 0}</p>
+                    `)
+                    .addTo(map);
+            }
+        });
+        
+        // Mouse leave event
+        map.on('mouseleave', 'trafficLayer', () => {
+            popup.remove();
+        });
+    }
+    
+    // Remove other layers
+    if (map.getLayer('speedLayer')) {
+        map.removeLayer('speedLayer');
+        map.removeSource('speedSource');
+    }
+    if (map.getLayer('timeLayer')) {
+        map.removeLayer('timeLayer');
+        map.removeSource('timeSource');
+    }
+    
+    // Remove all top markers
+    removeTopMarkers();
+    
+    // Update legend
+    document.getElementById('countLegend').classList.remove('hidden');
+    document.getElementById('speedLegend').classList.add('hidden');
+    document.getElementById('legendTitle').textContent = 'Vehicle Counts';
+    document.getElementById('top10Legend').classList.add('hidden');
+    
+    // Update chart title
+    document.getElementById('chartTitle').textContent = 'Weekday Vehicle Count Trend';
+    
+    // Skip chart updates during playback
+    if (!skipChartUpdate && !isUpdatingDuringPlayback) {
+        updateOverallChart();
+    }
+}
+    
+    // update overall chart
+    function updateOverallChart() {
+      if (!groupedOverallData) return;
+
+      const weekdaysInOrder = [
+        "Sunday", "Monday", "Tuesday", "Wednesday", 
+        "Thursday", "Friday", "Saturday"
+      ];
+
+      const totalCountsByWeekday = {};
+      weekdaysInOrder.forEach(day => {
+        const features = groupedOverallData.features.filter(f => 
+          f.properties.weekday === day
+        );
+        totalCountsByWeekday[day] = features.reduce((sum, f) => sum + (f.properties.COUNT_overall || 0), 0);
+      });
+
+      const ctx = document.getElementById('overallChart').getContext('2d');
+
+      if (overallChart) overallChart.destroy();
+
+      const backgroundColors = weekdaysInOrder.map(day => 
+        day === currentWeekday ? 'rgba(108, 117, 125, 0.7)' : 'rgba(108, 117, 125, 0.1)'
+      );
+      const borderColors = weekdaysInOrder.map(day => 
+        day === currentWeekday ? '#6c757d' : '#d9dee3'
+      );
+
+      overallChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: weekdaysInOrder.map((day, index) => {
+            const date = new Date(2020, 8, 6 + index);
+            return `${date.getMonth()+1}.${date.getDate()} (${day})`;
+          }),
+          datasets: [{
+            label: 'Total Vehicle Count',
+            data: weekdaysInOrder.map(day => totalCountsByWeekday[day]),
+            borderColor: '#d9dee3',
+            backgroundColor: 'rgba(200, 200, 200, 0.1)',
+            borderWidth: 2,
+            tension: 0.1,
+            fill: true,
+            pointBackgroundColor: '#6c757d',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Total Count: ${context.raw.toFixed(0)}`;
+                }
+              }
+            },
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Daily Total Vehicle Count (9.6–9.12)',
+              font: {
+                size: 14
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Vehicle Count',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              grid: {
+                color: 'rgba(0,0,0,0.05)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date (Weekday)',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+      
+   function updateTimeBandView(skipChartUpdate) {
+    if (!mergedTimeSpeedData) return;
+
+    // Get all features for current time band and weather
+    const allFeatures = mergedTimeSpeedData.features.filter(f =>
+        f.properties.weekday === currentWeekday &&
+        f.properties.time_band === currentTimeBand &&
+        f.properties.weather_code === currentWeather
+    );
+
+    // Add Top 10 markers
+    addTop10Markers(allFeatures);
+
+    // Filter by count
+    const filteredFeatures = allFeatures.filter(f => 
+        (f.properties.COUNT_time_band || 0) <= currentCountFilter
+    );
+
+    // Sort by count (low to high)
+    filteredFeatures.sort((a, b) => (a.properties.COUNT_time_band || 0) - (b.properties.COUNT_time_band || 0));
+
+    const filtered = {
+        type: "FeatureCollection",
+        features: filteredFeatures
+    };
+
+    // Assign colors
+    filtered.features.forEach(f => {
+        f.properties.color = assignColorCount(f.properties.COUNT_time_band || 0);
+    });
+
+    // Update or create data source and layer
+    if (map.getSource('timeSource')) {
+        map.getSource('timeSource').setData(filtered);
+    } else {
+        map.addSource('timeSource', { type: 'geojson', data: filtered });
+        map.addLayer({
+            id: 'timeLayer',
+            type: 'line',
+            source: 'timeSource',
+            paint: {
+                'line-color': ['get', 'color'],
+                'line-width': [
+                    'interpolate', ['linear'], ['zoom'],
+                    10, 3,
+                    15, 6
+                ],
+                'line-opacity': 0.9
+            }
+        });
+        
+        // Add click interaction
+        map.on('click', 'timeLayer', (e) => {
+            if (e.features.length > 0) {
+                popup.remove();
+                popup.setLngLat(e.lngLat)
+                    .setHTML(`
+                        <h3>Road Segment Details</h3>
+                        <p><strong>Road ID:</strong> ${e.features[0].properties.ROAD_ID}</p>
+                        <p><strong>Time Band:</strong> ${e.features[0].properties.time_band}</p>
+                        <p><strong>Vehicle Count:</strong> ${e.features[0].properties.COUNT_time_band || 0}</p>
+                        <p><strong>Avg Speed:</strong> ${(e.features[0].properties.MEAN_ARTH_SPD || 0).toFixed(2)} km/h</p>
+                    `)
+                    .addTo(map);
+            }
+        });
+        
+        map.on('mouseleave', 'timeLayer', () => {
+            popup.remove();
+        });
+    }
+    
+    // Remove other layers
+    if (map.getLayer('trafficLayer')) {
+        map.removeLayer('trafficLayer');
+        map.removeSource('trafficSource');
+    }
+    if (map.getLayer('speedLayer')) {
+        map.removeLayer('speedLayer');
+        map.removeSource('speedSource');
+    }
+    
+    // Update legend
+    document.getElementById('countLegend').classList.remove('hidden');
+    document.getElementById('speedLegend').classList.add('hidden');
+    document.getElementById('legendTitle').textContent = 'Vehicle Counts';
+    document.getElementById('top10Legend').classList.remove('hidden');
+    
+    // Skip chart updates during playback
+    if (!skipChartUpdate && !isUpdatingDuringPlayback) {
+        updateTimeChart();
+    }
+}
+
+    // updateSpeedView
+    function updateSpeedView(skipChartUpdate) {
+    if (!mergedTimeSpeedData) return;
+
+    // Get all features for current time band and weather
+    const allFeatures = mergedTimeSpeedData.features.filter(f =>
+        f.properties.weekday === currentWeekday &&
+        f.properties.time_band === currentTimeBand &&
+        f.properties.weather_code === currentWeather
+    );
+
+    // Add Top 10 markers
+    addTop10Markers(allFeatures);
+
+    // Filter by speed
+    const filteredFeatures = allFeatures.filter(f =>
+        (f.properties.MEAN_ARTH_SPD || 0) <= currentSpeedFilter
+    );
+
+    // Sort by count (low to high)
+    filteredFeatures.sort((a, b) => (a.properties.COUNT_time_band || 0) - (b.properties.COUNT_time_band || 0));
+
+    const filtered = {
+        type: "FeatureCollection",
+        features: filteredFeatures
+    };
+
+    // Assign colors
+    filtered.features.forEach(f => {
+        f.properties.color = assignColorSpeed(f.properties.MEAN_ARTH_SPD || 0);
+    });
+
+    if (map.getSource('speedSource')) {
+        map.getSource('speedSource').setData(filtered);
+    } else {
+        map.addSource('speedSource', { type: 'geojson', data: filtered });
+        map.addLayer({
+            id: 'speedLayer',
+            type: 'line',
+            source: 'speedSource',
+            paint: {
+                'line-color': ['get', 'color'],
+                'line-width': [
+                    'interpolate', ['linear'], ['zoom'],
+                    10, 3,
+                    15, 6
+                ],
+                'line-opacity': 0.9
+            }
+        });
+        
+        // Add click interaction
+        map.on('click', 'speedLayer', (e) => {
+            if (e.features.length > 0) {
+                popup.remove();
+                popup.setLngLat(e.lngLat)
+                    .setHTML(`
+                        <h3>Road Segment Details</h3>
+                        <p><strong>Road ID:</strong> ${e.features[0].properties.ROAD_ID}</p>
+                        <p><strong>Speed:</strong> ${(e.features[0].properties.MEAN_ARTH_SPD || 0).toFixed(2)} km/h</p>
+                        <p><strong>Count:</strong> ${e.features[0].properties.COUNT_time_band || 0}</p>
+                        <p><strong>Time Band:</strong> ${e.features[0].properties.time_band || 'N/A'}</p>
+                    `)
+                    .addTo(map);
+            }
+        });
+        
+        map.on('mouseleave', 'speedLayer', () => {
+            popup.remove();
+        });
+    }
+    
+    // Remove other layers
+    if (map.getLayer('trafficLayer')) {
+        map.removeLayer('trafficLayer');
+        map.removeSource('trafficSource');
+    }
+    if (map.getLayer('timeLayer')) {
+        map.removeLayer('timeLayer');
+        map.removeSource('timeSource');
+    }
+    
+    // Update legend
+    document.getElementById('countLegend').classList.add('hidden');
+    document.getElementById('speedLegend').classList.remove('hidden');
+    document.getElementById('legendTitle').textContent = 'Speed Ranges (km/h)';
+    document.getElementById('top10Legend').classList.remove('hidden');
+    
+    // Skip chart updates during playback
+    if (!skipChartUpdate && !isUpdatingDuringPlayback) {
+        updateSpeedChart();
+    }
+}
+
+    // updateTimeChart
+    function updateTimeChart() {
+      if (!mergedTimeSpeedData || !currentWeekday || !currentWeather) return;
+      
+      const timeBands = [
+        "1. Morning Peak (07:00–09:00)",
+        "2. Mid-Morning (09:00–12:00)",
+        "3. Midday (12:00–15:00)",
+        "4. Afternoon (15:00–17:00)",
+        "5. Evening Peak (17:00–19:00)",
+        "Outside Time Band"
+      ];
+      
+      const countsByTimeBand = {};
+      timeBands.forEach(band => {
+        const features = mergedTimeSpeedData.features.filter(f => 
+          f.properties.weekday === currentWeekday && 
+          f.properties.time_band === band &&
+          f.properties.weather_code === currentWeather
+        );
+        
+        countsByTimeBand[band] = features.length > 0 ? 
+          features.reduce((sum, f) => sum + (f.properties.COUNT_time_band || 0), 0) / features.length : 
+          0;
+      });
+      
+      const ctx = document.getElementById('timeChart').getContext('2d');
+      
+      if (timeChart) timeChart.destroy();
+      
+      timeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: timeBands.map(band => {
+            const parts = band.split(' ');
+            return `${parts[0]} ${parts[2]}`;
+          }),
+          datasets: [{
+            label: 'Average Vehicle Count',
+            data: timeBands.map(band => countsByTimeBand[band]),
+            borderColor: '#d9dee3',
+            backgroundColor: 'rgba(200, 200, 200, 0.1)',
+            borderWidth: 2,
+            tension: 0.1,
+            fill: true,
+            pointBackgroundColor: '#6c757d',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Avg Count: ${context.raw.toFixed(0)}`;
+                }
+              }
+            },
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Average Vehicle Count by Time Band',
+              font: {
+                size: 12
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Vehicle Count',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              grid: {
+                color: 'rgba(0,0,0,0.05)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Time Band',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+      document.getElementById('chartTitle').textContent = 'Vehicle Count Trend';
+    }
+
+    // updateSpeedChart
+    function updateSpeedChart() {
+      if (!mergedTimeSpeedData || !currentWeekday || !currentWeather || !currentTimeBand) return;
+
+      // Filter features based on current selection
+      const features = mergedTimeSpeedData.features.filter(f =>
+        f.properties.weekday === currentWeekday &&
+        f.properties.weather_code === currentWeather &&
+        f.properties.time_band === currentTimeBand
+      );
+
+      // Prepare scatter data with color coding based on speed
+      const scatterData = features.map(f => {
+        const speed = f.properties.MEAN_ARTH_SPD || 0;
+        let color = '#6c757d'; // default grey
+
+        if (speed <= 20) {
+          color = '#DF744E';
+        } else if (speed <= 40) {
+          color = '#F4B198';
+        } else if (speed <= 60) {
+          color = '#AAD7D9';
+        } else {
+          color = '#00939C';
+        }
+
+        return {
+          x: f.properties.COUNT_time_band || 0, // Vehicle count
+          y: speed,                            // Speed
+          roadId: f.properties.ROAD_ID,
+          backgroundColor: color               // Color based on speed
+        };
+      });
+
+      const ctx = document.getElementById('speedChart').getContext('2d');
+
+      if (speedChart) speedChart.destroy();
+
+      speedChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Road Segments',
+            data: scatterData,
+            backgroundColor: scatterData.map(point => point.backgroundColor), // Use individual colors
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return [
+                    `Road ID: ${scatterData[context.dataIndex].roadId}`,
+                    `Vehicle Count: ${context.parsed.x}`,
+                    `Speed: ${context.parsed.y.toFixed(2)} km/h`
+                  ];
+                }
+              }
+            },
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: `Speed vs Vehicle Count (${currentTimeBand})`,
+              font: {
+                size: 12
+              }
+            }
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Average Speed (km/h)',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              min: 0, // Start from 0 for speed
+              grid: {
+                color: 'rgba(0,0,0,0.05)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Vehicle Count',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              min: 0, // Start from 0 for count
+              grid: {
+                color: 'rgba(0,0,0,0.05)'
+              }
+            }
+          }
+        }
+      });
+      document.getElementById('chartTitle').textContent = 'Speed vs Vehicle Count';
+    }
+
+    // addTop10Markers
+    function addTop10Markers(features) {
+      removeTopMarkers();
+
+      const sortedFeatures = [...features].sort((a, b) => 
+        (b.properties.COUNT_time_band || 0) - (a.properties.COUNT_time_band || 0)
+      );
+
+      const uniqueRoads = new Set();
+      const topFeatures = [];
+
+      for (const feature of sortedFeatures) {
+        if (topFeatures.length >= 10) break;
+
+        const roadId = feature.properties.ROAD_ID;
+        const reverseRoadId = roadId.split('_').reverse().join('_');
+
+        if (!uniqueRoads.has(roadId) && !uniqueRoads.has(reverseRoadId)) {
+          uniqueRoads.add(roadId);
+          topFeatures.push(feature);
+        }
+      }
+
+      // mark the popup
+      topFeatures.forEach((feature) => {
+        const line = turf.lineString(feature.geometry.coordinates);
+        const el = document.createElement('div');
+        el.className = 'top-marker';
+        const midpoint = turf.along(line, turf.length(line) / 2);
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat(midpoint.geometry.coordinates)
+          .addTo(map);
+
+        // mark the popup
+        el.addEventListener('click', (e) => {
+          e.stopPropagation(); 
+          popup.remove();
+          popup.setLngLat(midpoint.geometry.coordinates)
+            .setHTML(`
+              <strong>Road ID:</strong> ${feature.properties.ROAD_ID}<br>
+              <strong>Count:</strong> ${feature.properties.COUNT_time_band || 0}<br>
+              <strong>Speed:</strong> ${(feature.properties.MEAN_ARTH_SPD || 0).toFixed(2)} km/h
+            `)
+            .addTo(map);
+        });
+
+        topMarkers.push(marker);
+      });
+    }
+    
+    // removeTopMarkers
+    function removeTopMarkers() {
+      topMarkers.forEach(marker => marker.remove());
+      topMarkers = [];
+    }
+
+    // switchMode
+    function switchMode(mode) {
+        // Stop any active playback
+        if (isPlaying) {
+            clearInterval(playbackInterval);
+            document.querySelectorAll('[id$="PlaybackBtn"]').forEach(btn => {
+                btn.textContent = '▶ Play';
+                btn.style.backgroundColor = '#abb2b9';
+            });
+            isPlaying = false;
+        }
+
+        currentMode = mode;
+
+        // Update button states
+        document.getElementById('overallBtn').classList.toggle('active', mode === 'overall');
+        document.getElementById('timeBandBtn').classList.toggle('active', mode === 'timeBand');
+        document.getElementById('speedBtn').classList.toggle('active', mode === 'speed');
+
+        // Update control visibility
+        document.getElementById('speedSliderContainer').classList.toggle('hidden', mode !== 'speed');
+        document.getElementById('countSliderContainer').classList.toggle('hidden', mode !== 'timeBand');
+        document.getElementById('overallCountSliderContainer').classList.toggle('hidden', mode !== 'overall');
+        document.getElementById('timeBandControl').classList.toggle('hidden', mode === 'overall');
+
+        // Update chart visibility
+        document.getElementById('overallChartContainer').classList.toggle('active', mode === 'overall');
+        document.getElementById('timeChartContainer').classList.toggle('active', mode === 'timeBand');
+        document.getElementById('speedChartContainer').classList.toggle('active', mode === 'speed');
+
+        // Update the view
+        if (mode === 'overall') {
+            updateOverallView();
+            updateOverallChart();
+        } else {
+            updateTimeBandView();
+            if (mode === 'timeBand') {
+                updateTimeChart();
+            } else {
+                updateSpeedChart();
+            }
+        }
+    }
+
+    // event listener
+    function setupPlayback(sliderId, valueId, modeName, updateViewFn) {
+        const slider = document.getElementById(sliderId);
+        const valueDisplay = document.getElementById(valueId);
+        
+        if (!slider || !valueDisplay) {
+            console.error(`Could not find elements for playback: ${sliderId} or ${valueId}`);
+            return;
+        }
+
+        const playbackBtnId = `${modeName}PlaybackBtn`;
+        let playbackBtn = document.getElementById(playbackBtnId);
+        
+        if (!playbackBtn) {
+            playbackBtn = document.createElement('button');
+            playbackBtn.id = playbackBtnId;
+            playbackBtn.className = 'playback-btn';
+            playbackBtn.textContent = '▶ Play';
+            slider.parentNode.insertBefore(playbackBtn, slider.nextSibling);
+        }
+
+        slider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            valueDisplay.textContent = `0–${value}`;
+            
+            if (modeName === 'overall') currentOverallCountFilter = value;
+            if (modeName === 'timeBand') currentCountFilter = value;
+            if (modeName === 'speed') currentSpeedFilter = value;
+
+            if (currentMode === modeName) {
+                updateViewFn();
+            }
+        });
+
+        playbackBtn.addEventListener('click', () => {
+            if (isPlaying && currentPlaybackMode === modeName) {
+                stopPlayback();
+            } else {
+                if (isPlaying) {
+                    stopPlayback();
+                }
+                
+                // start Playback
+                startPlayback(slider, valueDisplay, modeName, updateViewFn);
+                currentPlaybackMode = modeName;
+                playbackBtn.textContent = '⏹ Stop';
+                playbackBtn.style.backgroundColor = '#6c757d';
+            }
+        });
+    }
+
+    function startPlayback(slider, valueDisplay, modeName, updateViewFn) {
+        isPlaying = true;
+        isUpdatingDuringPlayback = true; // Set flag to true
+        const minValue = parseInt(slider.min);
+        const maxValue = parseInt(slider.max);
+        let currentValue = parseInt(slider.value);
+        let direction = 1;
+
+        // Calculate step size
+        const step = Math.ceil((maxValue - minValue) / 300);
+
+        playbackInterval = setInterval(() => {
+            currentValue += step * direction;
+
+            if (currentValue >= maxValue) {
+                currentValue = maxValue;
+                direction = -1;
+            } else if (currentValue <= minValue) {
+                currentValue = minValue;
+                direction = 1;
+            }
+
+            slider.value = currentValue;
+            valueDisplay.textContent = `0–${currentValue}`;
+
+            // Update filter values
+            if (modeName === 'overall') currentOverallCountFilter = currentValue;
+            if (modeName === 'timeBand') currentCountFilter = currentValue;
+            if (modeName === 'speed') currentSpeedFilter = currentValue;
+
+            // Force view update without redrawing chart
+            updateViewFn(true); // Pass true to indicate we're in playback mode
+
+        }, 150);
+    }
+
+    function stopPlayback() {
+        clearInterval(playbackInterval);
+        isPlaying = false;
+        currentPlaybackMode = null;
+
+        // Reset all playback button states
+        document.querySelectorAll('.playback-btn').forEach(btn => {
+            btn.textContent = '▶ Play';
+            btn.style.backgroundColor = '#abb2b9';
+        });
+
+        // We're no longer in playback mode, update everything including charts
+        isUpdatingDuringPlayback = false;
+
+        // Update the current view with charts
+        if (currentMode === 'overall') {
+            updateOverallView();
+            updateOverallChart();
+        } else if (currentMode === 'timeBand') {
+            updateTimeBandView();
+            updateTimeChart();
+        } else {
+            updateSpeedView();
+            updateSpeedChart();
+        }
+    }
+
+    // initialize Playback Controls
+    function initializePlaybackControls() {
+    // Set up playback controls for all three modes
+    setupPlayback('overallCountSlider', 'overallCountValue', 'overall', updateOverallView);
+    // Fixed: use the correct span IDs that match the HTML
+    setupPlayback('countSlider', 'countValue', 'timeBand', updateTimeBandView);
+    setupPlayback('speedSlider', 'speedValue', 'speed', updateSpeedView);
+}
+
+    // switch mode
+    function switchMode(mode) {
+    // Stop any active playback
+    if (isPlaying) {
+        stopPlayback();
+    }
+
+    currentMode = mode;
+    isUpdatingDuringPlayback = false; // Reset flag when switching modes
+
+    // Update button states
+    document.getElementById('overallBtn').classList.toggle('active', mode === 'overall');
+    document.getElementById('timeBandBtn').classList.toggle('active', mode === 'timeBand');
+    document.getElementById('speedBtn').classList.toggle('active', mode === 'speed');
+
+    // Update control visibility
+    document.getElementById('speedSliderContainer').classList.toggle('hidden', mode !== 'speed');
+    document.getElementById('countSliderContainer').classList.toggle('hidden', mode !== 'timeBand');
+    document.getElementById('overallCountSliderContainer').classList.toggle('hidden', mode !== 'overall');
+    document.getElementById('timeBandControl').classList.toggle('hidden', mode === 'overall');
+
+    // Update chart visibility
+    document.getElementById('overallChartContainer').classList.toggle('active', mode === 'overall');
+    document.getElementById('timeChartContainer').classList.toggle('active', mode === 'timeBand');
+    document.getElementById('speedChartContainer').classList.toggle('active', mode === 'speed');
+
+    // Update the view
+    if (mode === 'overall') {
+        updateOverallView();
+        updateOverallChart();
+    } else if (mode === 'timeBand') {
+        updateTimeBandView();
+        updateTimeChart();
+    } else {
+        updateSpeedView();
+        updateSpeedChart();
+    }
+}
+        
+        // initialize Playback Controls
+        initializePlaybackControls(); 
+
+    // event listener
+    document.getElementById('weekday-select').addEventListener('change', (e) => {
+        currentWeekday = e.target.value;
+        updateWeatherOptions();
+        
+        if (currentMode === 'overall') {
+            updateOverallView();
+            updateOverallChart();
+        } else if (currentMode === 'timeBand') {
+            updateTimeBandView();
+            updateTimeChart();
+        } else {
+            updateSpeedView();
+            updateSpeedChart();
+        }
+    });
+
+    document.getElementById('weather-select').addEventListener('change', (e) => {
+        currentWeather = e.target.value;
+        
+        if (currentMode === 'overall') {
+            updateOverallView();
+            updateOverallChart();
+        } else if (currentMode === 'timeBand') {
+            updateTimeBandView();
+            updateTimeChart();
+        } else {
+            updateSpeedView();
+            updateSpeedChart();
+        }
+    });
+
+    document.getElementById('timeband-select').addEventListener('change', (e) => {
+        currentTimeBand = e.target.value;
+        
+        if (currentMode === 'timeBand') {
+            updateTimeBandView();
+            updateTimeChart();
+        } else if (currentMode === 'speed') {
+            updateSpeedView();
+            updateSpeedChart();
+        }
+    });
+
+    document.getElementById('overallBtn').addEventListener('click', () => switchMode('overall'));
+    document.getElementById('timeBandBtn').addEventListener('click', () => switchMode('timeBand'));
+    document.getElementById('speedBtn').addEventListener('click', () => switchMode('speed'));
+
+    // Initialzing 
+    updateWeatherOptions();
+    switchMode('overall');
+
+  </script>
+</body>
+</html>

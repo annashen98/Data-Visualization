@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Xuanzhou Polygon Map</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.0/mapbox-gl.css" rel="stylesheet"/>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+
+    /* Legend styles */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      font-family: sans-serif;
+      font-size: 12px;
+      color: #333;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    .legend h4 {
+      margin: 0 0 5px;
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #999;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <h4>Road Density<br><small>(km/km²)</small></h4>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffffcc;"></div> 0–0.5
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #ffeda0;"></div> 0.5–1
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #feb24c;"></div> 1–2
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #f03b20;"></div> 2–4
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #bd0026;"></div> >4
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #b7eed7;"></div> Xuanzhou District
+    </div>
+  </div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamlhYW5hbmFuIiwiYSI6ImNrbmljaWhuZzF5bzMydm9heGZlZjM1amUifQ.ROU2m2WA53dN1W52K-BQSQ';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [118.73984, 31.03176],
+      zoom: 9
+    });
+
+    map.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-right');
+    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+
+    map.on('load', () => {
+      // Load road density polygons
+      fetch('data/road_density_fishnet_wgs84.geojson')
+        .then(response => response.json())
+        .then(data => {
+          const colorScale = [
+            { threshold: 0, color: '#ffffcc' },
+            { threshold: 500, color: '#ffeda0' },
+            { threshold: 1000, color: '#feb24c' },
+            { threshold: 2000, color: '#f03b20' },
+            { threshold: 4000, color: '#bd0026' }
+          ];
+
+          data.features.forEach(feature => {
+            const density = feature.properties.Sum_Shape_ || 0;
+            let color = '#ffffcc';
+            for (const scale of colorScale) {
+              if (density > scale.threshold) {
+                color = scale.color;
+              } else {
+                break;
+              }
+            }
+            feature.properties.color = color;
+          });
+
+          map.addSource('traffic', {
+            type: 'geojson',
+            data: data
+          });
+
+          map.addLayer({
+            id: 'traffic-layer',
+            type: 'fill',
+            source: 'traffic',
+            paint: {
+              'fill-color': ['get', 'color'],
+              'fill-opacity': 0.5
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error loading road density GeoJSON:', error);
+        });
+
+      // Load Xuanzhou district boundary
+      fetch('data/xuanzhou_district_only.geojson')
+        .then(response => response.json())
+        .then(geojson => {
+          map.addSource('xuanzhou', {
+            type: 'geojson',
+            data: geojson
+          });
+
+          map.addLayer({
+            id: 'xuanzhou_line',
+            type: 'line',
+            source: 'xuanzhou',
+            paint: {
+              'line-color': '#b7eed7',
+              'line-width': 8
+            }
+          });
+
+          const bbox = turf.bbox(geojson);
+          map.fitBounds(bbox, { padding: 20 });
+        })
+        .catch(error => {
+          console.error('Error loading Xuanzhou GeoJSON:', error);
+        });
+    });
+  </script>
+
+</body>
+</html>

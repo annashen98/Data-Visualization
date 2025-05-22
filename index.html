@@ -1,0 +1,478 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Analysis of Xuancheng City Transportation Network based on Multi-source Data</title><meta charset="utf-8">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="assets/css/main.css">
+
+        <!-- Mapbox CSS and JS -->
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.0/mapbox-gl.css" rel="stylesheet">
+        <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.0/mapbox-gl.js"></script>
+</head>
+    <body>
+		<!-- Header -->
+		<header id="header" class="alt">
+			<a href="#menu">Menu</a>
+            <div class="city-title">Analysis of Xuancheng City Transportation Network based on Multi-source Data</div>
+		</header>
+		
+		<!-- Nav -->
+		<nav id="menu">
+			<ul class="links">
+                <li><a href="#banner">Home</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#section0">Road Density</a></li>
+                <li><a href="#section1">Traffic Visualisation</a></li>
+				<li><a href="#section2">Flow map</a></li>
+                <li><a href="#data-visualisation">Trip Pattern Analysis</a></li>
+                <li><a href="#section3">Point map</a></li>
+                <li><a href="#poi-visualisation">POI Arrival Analysis</a></li>
+				<li><a href="#section4">Vehicle Trajectory Visualisation</a></li>
+                <li><a href="#vehicle-patterns">Vehicle Patterns</a></li>
+                <li><a href="#conclusion">Conclusion</a></li>
+                <li><a href="#references-team">References & Team</a></li>
+			</ul>
+		</nav>
+		
+		<!-- Banner -->
+		<section id="banner">
+			<video autoplay loop muted playsinline class="banner-video">
+				<source src="images/banner.mp4" type="video/mp4">
+				Your browser does not support the video tag.
+			</video>
+			<div class="inner">
+				<header>
+					<h1>Analysis of Xuancheng City Transportation Network based on Multi-source Data</h1>
+					<p>Investigating the spatial and temporal dynamics of road traffic using data-driven methods.<br>Unveiling urban mobility dynamics through trajectory data visualisation.</p>
+				</header>
+			</div>
+		</section>
+
+<!-- Main -->
+<div id="main">
+   <!-- Main -->
+<div id="main">
+    <!-- Section: Introduction -->
+    <!-- Main -->
+<div id="main">
+    <!-- Section: Introduction -->
+    <section class="wrapper style1" id="introduction" style="padding-top: 3rem; padding-bottom: 3rem;">
+        <div class="inner" style="margin-top: 0; margin-bottom: 0;">
+            <!-- Section Title -->
+            <header class="align-center" style="margin-bottom: 1rem;">
+                <h2 style="margin-bottom: 0.5rem;">Introduction</h2>
+            </header>
+            
+            <!-- 2 Columns -->
+            <div class="flex flex-2" style="align-items: center; gap: 15px; margin-top: 0;">
+                <!-- Left Column - Map Image -->
+                <div class="col col1" style="flex: 0.9; max-width: 45%; padding: 0;">
+                    <h3 class="image-title" style="margin-bottom: 10px; text-align: center; font-size: 1.2em;">Xuancheng Satellite Image</h3>
+                    <div class="image fit" style="margin-right: 15px; margin-bottom: 0;">
+                        <img src="images/xuancheng1.jpg" alt="Map of Xuancheng City, Anhui Province, China" style="width: 100%; height: auto; display: block;">
+                    </div>
+                    <div class="image-caption" style="font-size: 0.8em; color: #666; text-align: right; margin-top: 5px;">
+                    Source: Google Maps (2025)
+                    </div>
+                </div>
+                
+                <!-- Right Column - Introduction Text -->
+                <div class="col col2" style="flex: 1.1; max-width: 55%; padding: 0;">
+                    <h3 style="margin-top: 0; margin-bottom: 0.8rem;">Exploring Xuancheng's Transportation Network</h3>
+                    
+                    <p style="margin-bottom: 0.8rem;">For transport network analysis, Xuancheng City, which is located in the southeast of Anhui Province, is a perfect case study because of its quick expansion and advantageous location in the Yangtze River Delta economic zone. Studies have indicated that transport infrastructure is a major factor in China's urbanisation processes, impacting patterns of spatial development in cities of various sizes (Liu and Su, 2021).</p>
+                    
+                    <p style="margin-bottom: 0.8rem;">In line with recent approaches used in research on Chinese urban transport networks (Tung et al., 2024), we use complex network theory to analyse Xuancheng's transport system. This medium-sized Chinese city, which has a population of over 2.5 million and occupies 12,340 square kilometres, exemplifies the difficulties in striking a balance between sustainable urban transportation and economic growth.</p>
+                    
+                    <p style="margin-bottom: 0;">We integrate road network topology (578 road segments), loop detector data, and floating car trajectories from 500 commercial vehicles using holographic traffic data from Wang et al. (2022) that has been processed using the resampling methodology outlined by Wang et al. (2023). This allows us to develop a thorough understanding of traffic dynamics that can guide future urban planning decisions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+        
+       <!-- Section 0: Xuancheng Road Density -->
+<section id="section0">
+    <div class="flex-container">
+        <!-- Left column - Map -->
+        <div class="map-column">
+            <div class="iframe-container">
+                <div class="iframe-title">Xuancheng Road Density</div>
+                <iframe src="Xuancheng2(density).html"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right column - Text -->
+        <div class="text-column">
+            <h3>Road Density in Xuancheng City</h3>
+            <p>
+                This map shows road density across Xuancheng. While the visualization includes the entire city, traffic count data is only available for the Xuanzhou area, based on 794 roads.
+            </p>
+            <p>
+                Road density was calculated by:<br>
+                • Creating a 1 km × 1 km grid<br>
+                • Summing road lengths per grid cell<br>
+                • Dividing by grid area (1 km²)
+            </p>
+            <p>
+                This highlights the spatial distribution of road infrastructure, even in areas without loop detector coverage.
+            </p>
+        </div>
+    </div>
+</section>
+        
+<!-- Section 1: Vehicle Counts Visualization -->
+<section id="section1">
+    <div class="flex-container">
+        <!-- Left column - Map -->
+        <div class="map-column">
+            <div class="iframe-container">
+                <div class="iframe-title">Vehicle Counts Visualisation</div>
+                <iframe src="vehicles_counts.html"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right column - Text -->
+        <div class="text-column">
+            <h3>Traffic Volume Analysis</h3>
+            <h4 style="margin-top: 0; font-size: 18px; font-weight: bold;">Vehicle Count Map – Filter Logic & Insights</h4>
+            <p><strong>Goal:</strong> Show roads with the highest traffic under selected Weekday, Weather and Time Band.</p>
+            <p><strong>Color Scale:</strong> Roads are colored into 5 traffic count ranges.</p>
+              <p><strong>Explanation:</strong> Traffic volumes are generally higher on weekdays than weekends, with Tuesday and Wednesday showing the heaviest traffic. Interestingly, a sunny Sunday recorded more traffic than both a rainy Friday and Saturday, suggesting that weather is not the primary factor behind lower weekend traffic. Peak traffic occurs during the morning (7–9 AM) and evening (5–7 PM) periods, while the lowest volumes are observed between 3–5 PM, particularly in the western areas of Xuanzhou where congestion noticeably eases. Throughout the week, average vehicle speeds remain below 21 km/h. On Monday mornings, Friday middays, and Friday afternoons, speeds are especially low and tightly clustered, indicating significant congestion during these time periods.</p>
+        </div>
+    </div>
+</section>
+        
+       <!-- Section 2: Flow Map Visualization -->
+<section id="section2">
+    <div class="flex-container">
+        <!-- Left column - Map -->
+        <div class="map-column">
+            <div class="iframe-container">
+                <div class="iframe-title">Flow Map Visualisation</div>
+                <iframe src="kepler.gl (flowmapview).html"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right column - Text -->
+        <div class="text-column">
+            <h3>O-D Flow Map Analysis</h3>
+            <p>
+                <strong>Original Data:</strong> Vehicle trajectory data, containing GPS trajectory data collected from 500 vehicles, with a sampling frequency of once every 10 seconds.
+            </p>
+            <p>
+                <strong>Data filtering:</strong> Selected one week of data from Sept 6 to 12, 2020 and calculated the time intervals for each vehicle between each record to construct the O-D pairs.
+            </p>
+            <p>
+                <strong>Map Design:</strong> Arcs connect the O-D points and colors represent trip duration, where redder arcs indicate longer durations. A time slider at the bottom dynamically displays traffic patterns for different time periods.
+            </p>
+            <p>
+                <strong>Analysis:</strong> The traffic flow exhibits the following characteristics:
+                <br>• <strong>Central aggregation:</strong> A high-density O-D network is formed in the central area.
+                <br>• <strong>Radial structure:</strong> Traffic connections extend radially from the center to the periphery.
+                <br>• <strong>Regional differences:</strong> The intensity of O-D connections varies across regions, with the southern areas having tighter connections.
+                <br>• <strong>Trip duration distribution:</strong> Short trips dominate in the central area, while longer trips are mainly inter-regional.
+            </p>
+        </div>
+    </div>
+</section>
+            
+          <!-- Data Visualisation Section -->
+<section class="wrapper style1" id="data-visualisation">
+    <div class="inner">
+        <header class="align-center">
+            <h2>Trip Pattern Analysis</h2>
+            <p>Analyzing vehicle trip duration and timing patterns across Xuancheng City</p>
+        </header>
+        
+        <!-- Two-column layout for charts -->
+        <div class="flex flex-2" style="margin-bottom: 0; padding-bottom: 0;">
+            <!-- Left Chart -->
+            <div class="col" style="margin-bottom: 0; padding-bottom: 0;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23111936" style="height: 500px; margin-bottom: 0;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23111936/thumbnail" width="100%" alt="Trip counts chart" />
+                    </noscript>
+                </div>
+            </div>
+            
+            <!-- Right Chart -->
+            <div class="col" style="margin-bottom: 0; padding-bottom: 0;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23112603" style="height: 500px; margin-bottom: 0;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23112603/thumbnail" width="100%" alt="Trip duration chart" />
+                    </noscript>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description with negative margin to pull it up -->
+        <div class="chart-description" style="margin-top: -20px; padding: 1.5rem; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;">
+            <p style="margin-bottom: 1rem;">
+                <strong>Trip Count Analysis:</strong> The trip count chart shows average trips over 24 hours, comparing weekdays and weekends. Weekend trips are generally higher, reflecting more leisure activities. Peaks occur at 7:00–9:00 AM and 5:00–6:00 PM, with a midday dip at 12:00–1:00 PM. Weekend morning peaks start later and last longer.
+            </p>
+            <p>
+                <strong>Trip Duration Analysis:</strong> The bar chart highlights trip durations: short trips (0–15 minutes) dominate (40%), followed by medium (15–30 minutes, 25–30%), long (30–60 minutes, 20%), and very long trips(>60 minutes, 10–15%). Weekends see more long trips, especially 30–60 minutes on Saturdays, indicating a rise in leisure activities.
+            </p>
+        </div>
+    </div>
+</section>
+
+        <!-- Section 3: POI Map Visualization -->
+<section id="section3">
+    <div class="flex-container">
+        <!-- Left column - Map -->
+        <div class="map-column">
+            <div class="iframe-container">
+                <div class="iframe-title">POI Map Visualisation</div>
+                <iframe src="kepler.gl (hexbin_new).html"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right column - Text -->
+        <div class="text-column" style="justify-content: center; display: flex; flex-direction: column;">
+            <h3>Destination & POI Analysis</h3>
+            <p>
+                <strong>Data:</strong> Destination points from O-D pairs; POI data
+            </p>
+            <p>
+                <strong>Map Design:</strong> The map showcases vehicle destination data and the distribution of points of interest (POIs). The map displays a heatmap of POI density alongside hexagonal bar charts of destination points. Red and yellow areas highlight hotspots for trips.
+            </p>
+            <p>
+                <strong>Analysis:</strong> High-density activity is concentrated in the city center, radiating outward in a star-shaped structure, reflecting Xuancheng's urban spatial structure and main traffic flows.
+            </p>
+        </div>
+    </div>
+</section>
+            
+            <!-- Flourish Charts Section -->
+<section class="wrapper style1" id="poi-visualisation">
+    <div class="inner">
+        <header class="align-center">
+            <h2>POI Arrival Analysis</h2>
+            <p>Comparing arrival patterns at points of interest during weekends versus weekdays</p>
+        </header>
+        
+        <!-- Two-column layout for charts -->
+        <div class="flex flex-2" style="align-items: stretch; gap: 20px; margin-bottom: 0; padding-bottom: 0;">
+            <!-- Left Chart -->
+            <div class="col" style="flex: 1; width: 48%; margin-bottom: 0; padding-bottom: 0;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23117877" style="height: 500px; margin-bottom: 0;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23117877/thumbnail" width="100%" alt="chart visualisation" />
+                    </noscript>
+                </div>
+            </div>
+            
+            <!-- Right Chart -->
+            <div class="col" style="flex: 1; width: 48%; margin-bottom: 0; padding-bottom: 0;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23117721" style="height: 500px; margin-bottom: 0;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23117721/thumbnail" width="100%" alt="chart visualisation" />
+                    </noscript>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description below charts with no gap -->
+        <div style="background-color: white; padding: 20px; border-radius: 8px; margin-top: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <p style="margin-bottom: 10px;">
+                These charts show the ranking changes of different POI categories during weekdays and weekends, reflecting the correlation between destinations and surrounding POIs.
+            </p>
+            <p style="margin-bottom: 10px;">
+                Overall, <em>Shopping</em> and <em>Transportation</em> consistently rank highest (1st–2nd) on both weekdays and weekends, highlighting their ongoing importance.
+            </p>
+            <p style="margin-bottom: 10px;">
+                Specifically, during weekdays, <em>Dining</em> ranks higher during early morning and evening hours, corresponding to breakfast and dinner peaks. <em>Life Services</em> and <em>Businesses</em> maintain stable rankings during working hours, reflecting typical business activity patterns. <em>Education and Culture</em> shows significant fluctuations, peaking during 8:00–10:00 AM and 4:00–6:00 PM, aligning with school schedules.
+            </p>
+            <p style="margin-bottom: 0;">
+                On weekends, <em>Dining</em> ranks 3rd–4th but rises to 2nd during 6:00–8:00 PM, reflecting increased weekend dining demand. <em>Leisure and Entertainment</em> rises in rank, especially after 6:00 PM, showing increased evening activities. <em>Healthcare</em> ranks slightly higher in the evening compared to weekdays, suggesting a preference for addressing medical needs on weekends.
+            </p>
+        </div>
+    </div>
+</section> 
+            
+            <!-- Section 4: Vehicle Trajectory Visualization -->
+<section id="section4">
+    <div class="flex-container">
+        <!-- Left column - Map (75%) -->
+        <div class="map-column">
+            <div class="iframe-container">
+                <div class="iframe-title">Vehicle Trajectory Visualisation</div>
+                <iframe src="kepler.gl(trajectory2).html"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right column - Text (25%) -->
+        <div class="text-column">
+            <h3>Vehicle Movement Patterns</h3>
+            <p>
+                <strong>Data Source:</strong> GPS trajectories from 500 commercial vehicles sampled every 10 seconds during September 2020.
+            </p>
+            <p>
+                <strong>Visualization Features:</strong> 
+                <br>• Color-coded by speed (red: <5 km/h, orange: 5-8 km/h, light blue: 8-12 km/h, teal: >12 km/h)
+                <br>• POI density overlay showing hotspots of activity
+                <br>• Interactive time slider spanning 24 hours
+            </p>
+            <p>
+                <strong>Key Insights:</strong>
+                <br>• Clear concentration of activity in city center
+                <br>• Major corridors show higher speeds (blue/teal)
+                <br>• Morning (7-9 AM) and evening (5-7 PM) peaks visible
+                <br>• Congestion points (red/orange) occur primarily at intersections and commercial zones
+            </p>
+            <p>
+                <strong>Urban Implications:</strong> The trajectory patterns reveal the relationship between road network design and vehicle flow efficiency, highlighting potential areas for traffic management interventions.
+            </p>
+        </div>
+    </div>
+</section>
+            
+<!-- New Flourish Charts Section -->
+<section class="wrapper style1" id="vehicle-patterns">
+    <div class="inner">
+        <header class="align-center">
+            <h2>Vehicle Movement Patterns</h2>
+            <p>Analysing spatial distribution and temporal patterns of vehicle movements in Xuancheng</p>
+        </header>
+        
+        <!-- Two-column layout for charts -->
+        <div class="flex flex-2" style="align-items: stretch; gap: 20px; margin-bottom: 80px !important;">
+            <!-- Left Chart -->
+            <div class="col" style="flex: 1; width: 48%;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23145323" style="height: 500px;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23145323/thumbnail" width="100%" alt="chart visualisation" />
+                    </noscript>
+                </div>
+            </div>
+            
+            <!-- Right Chart -->
+            <div class="col" style="flex: 1; width: 48%;">
+                <div class="flourish-embed flourish-chart" data-src="visualisation/23145198" style="height: 500px;">
+                    <script src="https://public.flourish.studio/resources/embed.js"></script>
+                    <noscript>
+                        <img src="https://public.flourish.studio/visualisation/23145198/thumbnail" width="100%" alt="chart visualisation" />
+                    </noscript>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Description -->
+        <div style="background-color: white; padding: 15px; border-radius: 8px; margin-top: 80px !important; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; top: 60px;">
+            <p style="margin-bottom: 0; font-size: 0.95em; line-height: 1.4;">
+                The left chart compares vehicle distribution between Sunday (Sep 6) and Monday (Sep 7), showing similar patterns with both reaching peak presence during daytime. Sunday maintains 94% vehicle presence during 14-16h while Monday shows 86% during the same period. The right chart reveals speed variations with Monday morning experiencing a higher peak (8.62 km/h at 4-6h) compared to Sunday (7.88 km/h). Throughout the day, weekday speeds are generally lower than weekend speeds, likely due to workday congestion, despite similar vehicle presence.
+            </p>
+        </div>
+    </div>
+</section>
+    
+    <section id="conclusion" class="conclusion-section">
+    <div class="container">
+        <h2 class="section-title">Conclusion</h2>
+        <div class="conclusion-content">
+            <ul class="conclusion-points">
+                <li><strong><a href="#section0" class="map-link">Road Density</a>:</strong> The city centre (Xuanzhou District) has a dense road network (over 4 km/km²), consistent with urban infrastructure patterns.</li>
+                
+                <li><strong><a href="#section1" class="map-link">Traffic Visualisation</a>:</strong> The second map reveals higher weekday traffic on Zhaoting Road, especially on Tuesday and Wednesday. Peak hours occur in the morning and evening, while speeds remain below 21 km/h citywide. The weather has minimal impact, and congestion is most severe during Monday mornings and Friday midday to afternoon periods.</li>
+                
+                <li><strong><a href="#section2" class="map-link">Flow Map</a> & <a href="#section3" class="map-link">Point Map</a>:</strong> We analysed OD pairs and POI distribution, revealing a central high-density network and tighter southern connections. Short trips dominate centrally, while long trips occur between regions. Destinations are most widely distributed in the city centre, where the densest distribution of POIs is located. Travel patterns peak during commutes and weekends, highlighting shifts in leisure and essential activities across different times.</li>
+                
+                <li><strong><a href="#section4" class="map-link">Vehicle Trajectory Visualisation</a>:</strong> The 500-vehicle GPS data reveals Xuancheng's monocentric structure with peak activity during morning (7-9 AM) and evening (5-7 PM) commutes. Speed patterns form a clear hierarchy: central areas experience congestion (&lt;5 km/h), main corridors maintain moderate speeds (5-12 km/h), and peripheral roads show faster movement (&gt;12 km/h). Key congestion points occur at major intersections and commercial zones, highlighting specific locations for targeted traffic management interventions.</li>
+            </ul>
+            
+            <p>These findings provide valuable insights for urban planners and traffic managers in Xuancheng City. By understanding both the spatial and temporal dimensions of vehicle movement, targeted interventions can be implemented to improve traffic flow, reduce congestion, and enhance urban mobility.</p>
+        </div>
+    </div>
+</section>
+    
+        </div>
+    
+
+<!-- References & Team Section -->
+<section class="wrapper style1" id="references-team">
+    <div class="inner compact">
+        <!-- References part -->
+        <div class="references-section">
+            <header class="align-center">
+                <h2>References</h2>
+                <p>Academic research supporting our transportation network analysis</p>
+            </header>
+            <div class="content">
+                <ul class="reference-list">
+                    <li>Liu, T.-Y. and Su, C.-W. (2021). Is transportation improving urbanization in China? <em>Socio-Economic Planning Sciences</em>, [online] 77, pp.101034–101034. doi:https://doi.org/10.1016/j.seps.2021.101034.</li>
+                    
+                    <li>Tung, C.-L., He, S., Mei, L. and Zhang, H. (2024). Exploring the influence of transportation on urban spatial structure using the spatial Durbin model: evidence from 265 prefecture-level cities in China. <em>Computational Urban Science</em>, 4(1). doi:https://doi.org/10.1007/s43762-024-00118-0.</li>
+                    
+                    <li>Wang, Y., Chen, Y., Li, G., Lu, Y., He, Z., Yu, Z. and Sun, W. (2023). City-scale holographic traffic flow data based on vehicular trajectory resampling. <em>Scientific Data</em>, [online] 10(1). doi:https://doi.org/10.1038/s41597-022-01850-0.</li>
+                    
+                    <li>Wang, Y., Chen, Y., Li, G., Lu, Y., Yu, Z. and He, Z. (2022). Resampled Traffic Flow Data of Xuancheng City. <em>figshare</em>. [online] doi:https://doi.org/10.6084/u002Fm9.figshare.18700553.v1.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Team part -->
+        <div class="team-section">
+            <header class="align-center team-header">
+                <h2>Our Team</h2>
+                <p>Here are our team members behind this visualisation.</p>
+            </header>
+            
+            <div class="flex flex-3 team-container">
+                <div class="col align-center">
+                    <div class="image round fit">
+                        <img src="images/team-member1.JPG" alt="Xintong Shen"> 
+                    </div>
+                    <h3>Xintong Shen</h3>
+                    <h4 class="role">Co-Producer</h4>
+                    <h4 class="email">xintong.shen.24@ucl.ac.uk</h4>
+                </div>
+                
+                <div class="col align-center">
+                    <div class="image round fit">
+                        <img src="images/team-member2.jpg" alt="Seyma Berker"> 
+                    </div>
+                    <h3>Seyma Berker</h3>
+                    <h4 class="role">Co-Producer</h4>
+                    <h4 class="email">seyma.berker.24@ucl.ac.uk</h4>
+                </div>
+                
+                <div class="col align-center">
+                    <div class="image round fit">
+                        <img src="images/team-member3.JPG" alt="Xuechun Li"> 
+                    </div>
+                    <h3>Xuechun Li</h3>
+                    <h4 class="role">Co-Producer</h4>
+                    <h4 class="email">xuechun.li.24@ucl.ac.uk</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="u-align-center u-clearfix u-footer u-grey-80 u-footer" id="footer">
+    <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <p class="u-custom-font u-font-montserrat u-small-text u-text u-text-variant u-text-1">
+            © Copyright Xintong Shen, Seyma Berker, Xuechun Li from 
+            <a href="https://www.ucl.ac.uk" class="u-active-none u-border-none u-btn u-button-link u-button-style u-custom-font u-font-montserrat u-hover-none u-none u-text-body-alt-color u-btn-1" target="_blank">
+                University College London
+            </a>, 
+            <a href="https://www.ucl.ac.uk/bartlett/casa" class="u-active-none u-border-none u-btn u-button-link u-button-style u-custom-font u-font-montserrat u-hover-none u-none u-text-body-alt-color u-btn-2" target="_blank">
+                The Bartlett Centre for Advanced Spatial Analysis
+            </a>
+        </p>
+    </div>
+</footer>
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script><script src="assets/js/jquery.scrolly.min.js"></script><script src="assets/js/jquery.scrollex.min.js"></script><script src="assets/js/skel.min.js"></script><script src="assets/js/util.js"></script><script src="assets/js/main.js"></script>
+         </body>
+    
+    </html>
