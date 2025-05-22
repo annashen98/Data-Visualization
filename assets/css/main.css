@@ -4263,7 +4263,7 @@ iframe, .flourish-embed {
     line-height: 1.4;
 }
 
-/* Styling for section2 to match other sections */
+/* Styling */
 #section2 {
     background-color: #f9f9f9;
     padding: 2rem 0;
@@ -4355,13 +4355,11 @@ iframe, .flourish-embed {
     line-height: 1.6;
 }
 
-/* Styling for section3 to match other sections */
+/* Section 3: POI Map Layout */
 #section3 {
     background-color: #f9f9f9;
     padding: 2rem 0;
     width: 100%;
-    margin-top: 40px;
-    margin-bottom: 40px;
 }
 
 #section3 .flex-container {
@@ -4424,13 +4422,6 @@ iframe, .flourish-embed {
 
 #section3 .text-column strong {
     font-weight: bold;
-}
-
-#section3 .text-column {
-    /* Existing properties... */
-    justify-content: center; /* This centers content vertically */
-    height: 75vh; /* Match iframe height */
-    overflow-y: auto; /* Allow scrolling if needed */
 }
 
 /* POI Visualisation section styling */
